@@ -6,6 +6,7 @@ public interface ISerializableMeta
 {
     IReadOnlyList<string> FieldNames { get; }
     IReadOnlyList<Type> FieldTypes { get; }
-    Func<StrongWriteKey, string, Serializable> Constructor { get; }
-
+    Serializable Deserialize(string json);
+    void Initialize(Serializable serializable, string json);
+    string SerializeSerializable(Serializable serializable);
 }

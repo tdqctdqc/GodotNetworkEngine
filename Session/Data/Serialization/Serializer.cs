@@ -17,7 +17,7 @@ public class Serializer
     {
         if (t is Serializable s)
         {
-            return s.Serialize();
+            return _serializableMetas[s.GetType()].SerializeSerializable(s);
         }
         if (t is Type type)
         {
@@ -25,16 +25,27 @@ public class Serializer
         }
         return System.Text.Json.JsonSerializer.Serialize(t);
     }
-
-    public static T Deserialize<T>(string json, StrongWriteKey key)
+    public static string Serialize(object o)
     {
-        return (T) Deserialize(json, typeof(T), key);
+        if (o is Serializable s)
+        {
+            return _serializableMetas[s.GetType()].SerializeSerializable(s);
+        }
+        if (o is Type t)
+        {
+            return t.Name;
+        }
+        return System.Text.Json.JsonSerializer.Serialize(o);
     }
-    public static object Deserialize(string json, Type type, StrongWriteKey key)
+    public static T Deserialize<T>(string json)
+    {
+        return (T) Deserialize(json, typeof(T));
+    }
+    public static object Deserialize(string json, Type type)
     {
         if(typeof(Serializable).IsAssignableFrom(type)) 
         {
-            return Serializable.Deserialize(json, type, key);
+            return _serializableMetas[type].Deserialize(json);
         }
         if (typeof(Type).IsAssignableFrom(type))
         {
@@ -44,7 +55,7 @@ public class Serializer
     }
     public static void Setup()
     {
-        var reference = nameof(SerializableMeta<object>.ForReference);
+        var reference = nameof(SerializableMeta<Serializable>.ForReference);
         _serializableMetas = new Dictionary<Type, ISerializableMeta>();
         var serializableTypes = Assembly.GetExecutingAssembly().GetConcreteTypesOfType<Serializable>();
         var serializableMetaType = typeof(SerializableMeta<>);

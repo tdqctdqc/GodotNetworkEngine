@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class Repository<T> : IRepo where T : Entity
 {
+    public Domain Domain { get; private set; }
     public Action<T, WriteKey> AddedEntity { get; set; }
     public Action<T, WriteKey> RemovingEntity { get; set; }
     private Dictionary<string, Action<int, WriteKey>> _entityValueUpdatedActions;
@@ -13,8 +14,9 @@ public class Repository<T> : IRepo where T : Entity
     private List<T> _entities;
     private ClientWriteKey _weakKey;
 
-    public Repository()
+    public Repository(Domain domain)
     {
+        Domain = domain;
         _entityValueUpdatedActions = new Dictionary<string, Action<int, WriteKey>>();
         _entitiesById = new Dictionary<int, T>();
         _entities = new List<T>();
@@ -23,7 +25,7 @@ public class Repository<T> : IRepo where T : Entity
     public void AddEntity(Entity e, StrongWriteKey key)
     {
         if (e is T t == false) throw new Exception();
-        _entitiesById.Add(t.Id, t);
+        _entitiesById.Add(t.Id.Value, t);
         _entities.Add(t);
         if(key is HostWriteKey)
         {
@@ -47,7 +49,7 @@ public class Repository<T> : IRepo where T : Entity
         {
             RemovingEntity?.Invoke(t, _weakKey);
         }
-        _entitiesById.Remove(t.Id);
+        _entitiesById.Remove(t.Id.Value);
         _entities.Remove(t);
     }
 
@@ -57,8 +59,9 @@ public class Repository<T> : IRepo where T : Entity
         _entityValueUpdatedActions[valueName] += callback;
     }
 
-    protected void RaiseValueChangedNotice(string valueName, int id, WriteKey key)
+    public void RaiseValueChangedNotice(string valueName, int id, WriteKey key)
     {
+        if (_entitiesById.ContainsKey(id) == false) throw new Exception();
         _entityValueUpdatedActions[valueName]?.Invoke(id, key);
     }
 }

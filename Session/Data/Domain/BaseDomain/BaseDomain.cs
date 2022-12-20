@@ -4,9 +4,10 @@ using System.Collections.Generic;
 
 public class BaseDomain : Domain
 {
-    public Repository<Player> Players => GetRepo<Player>();
+    public Repository<Player> Players { get; private set; }
     public BaseDomain() : base()
     {
-        _repos.Add(typeof(Player), new Repository<Player>());
+        Players = new Repository<Player>(this);
+        _repos.Add(typeof(Player), Players);
     }
 }

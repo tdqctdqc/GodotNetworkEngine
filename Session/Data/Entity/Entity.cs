@@ -4,21 +4,11 @@ using System.Collections.Generic;
 
 public abstract class Entity : Serializable
 {
-    public int Id => Get<int>(nameof(Id));
-    
+    public EntityStruct<int> Id { get; set; }
+
     protected Entity(int id, HostWriteKey key) : base()
     {
-        SetInner<int>(id, nameof(Id), key);
+        Id = EntityStruct<int>.Construct(id, this, nameof(Id));
     }
-    protected Entity(StrongWriteKey key, string json) : base(key, json) { }
-    
-    public void Set<T>(T val, string name, StrongWriteKey key, Domain domain, IServer server)
-    {
-        SetInner(val, name, key);
-        if (key is HostWriteKey hKey)
-        {
-            var update = EntityUpdate.Encode<T>(name, Id, domain, val, hKey);
-            ((HostServer)server).QueueUpdate(update);
-        }
-    }
+    protected Entity(string json) : base(json) { }
 }

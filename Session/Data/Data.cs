@@ -18,14 +18,14 @@ public class Data
 
     public void AddEntity(Entity e, Type domainType, StrongWriteKey key)
     {
-        _entities.Add(e.Id, e);
+        _entities.Add(e.Id.Value, e);
         _domains[domainType].Repos[e.GetType()].AddEntity(e, key);
     }
 
     public void RemoveEntity(Entity e, Type domainType, StrongWriteKey key)
     {
         _domains[domainType].Repos[e.GetType()].RemoveEntity(e, key);
-        _entities.Remove(e.Id);
+        _entities.Remove(e.Id.Value);
     }
     public T GetDomain<T>() where T : Domain
     {

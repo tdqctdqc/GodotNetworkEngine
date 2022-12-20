@@ -3,21 +3,16 @@ using System;
 
 public abstract class SampleSerializable : Serializable
 {
-    public string Field => Get<string>(nameof(Field));
     protected SampleSerializable(string field, HostWriteKey key) : base()
     {
-        //when initializing should use SetInner
-        //Entity.Set is for updating existing entities and sending update if host
-        //Non-entity serializables will have own methods of updating
-        SetInner<string>(field, nameof(Field), key);
+        //if entity should initialize entityVariables here from arguments
     }
 
     
-    // private static SampleEntity DeserializeConstructor(WriteKey key, string json)
+    // private static SampleEntity DeserializeConstructor(string json)
     // {
-    //     return new SampleEntity(key, json);
+    //     return new SampleEntity(json);
     // }
-    
-    //write key is FIRST here to prevent confusion with a possible constructor initializing a string field
-    protected SampleSerializable(StrongWriteKey key, string json) : base(key, json) { }
+    //this is constructor for deserialization
+    protected SampleSerializable(string json) : base(json) { }
 }

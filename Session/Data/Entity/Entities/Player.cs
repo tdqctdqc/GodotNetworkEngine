@@ -1,20 +1,19 @@
 using Godot;
 using System;
 
-public class Player : Entity
+public sealed class Player : Entity
 {
-    public string Name => Get<string>(nameof(Name));
-    public EntityRef<Player> Enemy => Get<EntityRef<Player>>(nameof(Enemy));
-
-    public Player(int id, string name, int enemy, HostWriteKey key) : base(id, key)
+    public EntityString Name { get; set; }
+    public Player(int id, string name, HostWriteKey key) : base(id, key)
     {
-        SetInner<string>(name, nameof(Name), key);
-        SetInner(new EntityRef<Player>(enemy), nameof(Enemy), key);
+        Name = EntityString.Construct(name, this, nameof(Name));
     }
 
-    private static Player DeserializeConstructor(StrongWriteKey key, string json)
+    private static Player DeserializeConstructor(string json)
     {
-        return new Player(key, json);
+        GD.Print("calling deserialize constructor");
+
+        return new Player(json);
     }
-    private Player(StrongWriteKey key, string json) : base(key, json) { }
+    private Player(string json) : base(json) { }
 }
