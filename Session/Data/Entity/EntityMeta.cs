@@ -19,7 +19,7 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     private Dictionary<string, Func<object, string>> _fieldSerializers; 
     private Dictionary<string, Func<T, object>> _fieldGetters; 
     private Dictionary<string, Action<T, object>> _fieldInitializers;
-    private Func<string, Serializable> _deserializer;
+    private Func<string, T> _deserializer;
 
     public void ForReference()
     {
@@ -56,15 +56,43 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     private void SetFuncs(Type serializableType, PropertyInfo p)
     {
         var name = p.Name;
-        GD.Print(name);
         var propType = p.PropertyType;
         if (propType.HasAttribute<EntityVariableAttribute>() == false) throw new Exception();
         
-        _fieldDeserializers[name] = MakeDeserializer(p);
+        _fieldDeserializers[name] = MakeDeserializerNew(p);
         _fieldSerializers[name] = MakeSerializer(p);
         _fieldGetters[name] = MakeGetter(p);
         _fieldInitializers[name] = MakeSetter(p);
     }
+
+    private TDelegate MakeDelegate<TDelegate>(PropertyInfo p, string innerMethodName, MethodInfo propMethod)
+        where TDelegate : Delegate
+    {
+        var innerMethodInfo = typeof(EntityMeta<T>).GetMethod(innerMethodName,
+            BindingFlags.Static | BindingFlags.NonPublic);
+        var innerGeneric = innerMethodInfo.MakeGenericMethod(p.PropertyType);
+        return (TDelegate) innerGeneric.Invoke(null, new object[]{propMethod});
+    }
+    private static Func<object, string> Test<TProperty>(MethodInfo mi)
+    {
+        var del = mi.MakeStaticMethodDelegate<Func<TProperty, string>>();
+        return (i) => del((TProperty)i);
+    }
+
+    private Func<string, string, T, object> MakeDeserializerNew(PropertyInfo p)
+    {
+        var deserializeMi = p.PropertyType.GetMethod("Deserialize", BindingFlags.Static | BindingFlags.Public);
+        return MakeDelegate<Func<string, string, T, object>>(p, nameof(MakeDeserializerInnerNew), deserializeMi);
+    }
+
+    private static Func<string, string, T, object> MakeDeserializerInnerNew<TProperty>(MethodInfo mi)
+    {
+        var del = mi.MakeStaticMethodDelegate<Func<string, string, T, TProperty>>();
+        return (json, name, entity) => del(json, name, entity);
+    }
+    
+    
+    
     private Func<string, string, T, object> MakeDeserializer(PropertyInfo p)
     {
         var inner = typeof(EntityMeta<T>).GetMethod(nameof(MakeDeserializerInner),
@@ -125,10 +153,10 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
             .Where(m => m.Name == "DeserializeConstructor")
             .Where(m => m.ReturnType == serializableType)
             .First();
-        _deserializer = constructor.MakeStaticMethodDelegate<Func<string, Serializable>>();
+        _deserializer = constructor.MakeStaticMethodDelegate<Func<string, T>>();
     }
 
-    public Serializable Deserialize(string json)
+    public T Deserialize(string json)
     {
         return _deserializer(json);
     }
@@ -152,9 +180,7 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         for (int i = 0; i < valJsons.Count; i++)
         {
             var fieldName = _fieldNames[i];
-            GD.Print(fieldName);
             var value = _fieldDeserializers[fieldName](valJsons[i], fieldName, t);
-            GD.Print(valJsons[i]);
             _fieldInitializers[fieldName](t, value);
         }
     }

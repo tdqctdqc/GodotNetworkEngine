@@ -18,22 +18,6 @@ public class Serializer
     {
         return (EntityMeta<T>)_serializableMetas[typeof(T)];
     }
-    public static T Deserialize<T>(string json)
-    {
-        return (T) Deserialize(json, typeof(T));
-    }
-    public static object Deserialize(string json, Type type)
-    {
-        if(typeof(Serializable).IsAssignableFrom(type)) 
-        {
-            return _serializableMetas[type].Deserialize(json);
-        }
-        if (typeof(Type).IsAssignableFrom(type))
-        {
-            return Type.GetType(json);
-        }
-        return System.Text.Json.JsonSerializer.Deserialize(json, type);
-    }
     public static void Setup()
     {
         var reference = nameof(EntityMeta<Entity>.ForReference);

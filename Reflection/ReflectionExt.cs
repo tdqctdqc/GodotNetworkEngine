@@ -36,9 +36,9 @@ public static class ReflectionExt
     {
         return baseType.MakeGenericType(argTypes);
     }
-    public static T MakeInstanceMethodDelegate<T>(this MethodInfo m, Type delegateType) where T : Delegate
+    public static T MakeInstanceMethodDelegate<T>(this MethodInfo m) where T : Delegate
     {
-        return (T)Delegate.CreateDelegate(delegateType, null, m);
+        return (T)Delegate.CreateDelegate(typeof(T), null, m);
     }
     
     public static Delegate MakeInstanceMethodDelegate(this MethodInfo m, Type delegateType)

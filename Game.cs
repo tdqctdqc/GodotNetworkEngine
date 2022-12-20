@@ -25,8 +25,9 @@ public class Game : Node
         var meta = Serializer.GetEntityMeta<Player>();
         var player = new Player(1, "doot", new HostWriteKey());
         var playerJson = Serializer.GetEntityMeta<Player>().Serialize(player);
-        GD.Print(playerJson);
+        // GD.Print(playerJson);
         var player2 = meta.Deserialize(playerJson);
+        GD.Print(player2.Name.Value);
     }
 }
 
