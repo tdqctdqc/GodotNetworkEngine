@@ -3,7 +3,7 @@ using System;
 
 public sealed class Player : Entity
 {
-    public EntityString Name { get; set; }
+    public EntityString Name { get; private set; }
     public Player(int id, string name, HostWriteKey key) : base(id, key)
     {
         Name = EntityString.Construct(name, this, nameof(Name));

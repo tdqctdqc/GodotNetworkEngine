@@ -17,6 +17,15 @@
           "buildTransitive/net462/_._": {}
         }
       },
+      "Mono.Reflection/2.0.0": {
+        "type": "package",
+        "compile": {
+          "lib/net40/Mono.Reflection.dll": {}
+        },
+        "runtime": {
+          "lib/net40/Mono.Reflection.dll": {}
+        }
+      },
       "System.Buffers/4.5.1": {
         "type": "package",
         "frameworkAssemblies": [
@@ -162,6 +171,21 @@
         "microsoft.bcl.asyncinterfaces.7.0.0.nupkg.sha512",
         "microsoft.bcl.asyncinterfaces.nuspec",
         "useSharedDesignerContext.txt"
+      ]
+    },
+    "Mono.Reflection/2.0.0": {
+      "sha512": "gipqt3dO1NsgM9wfUsQeNVLYmSskDfaN+muNQHLJYkCuYxx2bIp6gAA8j2Rp+Ey6YNHloZv+BJY56r9fl3tfew==",
+      "type": "package",
+      "path": "mono.reflection/2.0.0",
+      "files": [
+        ".nupkg.metadata",
+        ".signature.p7s",
+        "lib/net40/Mono.Reflection.dll",
+        "lib/net40/Mono.Reflection.pdb",
+        "lib/netstandard2.0/Mono.Reflection.dll",
+        "lib/netstandard2.0/Mono.Reflection.pdb",
+        "mono.reflection.2.0.0.nupkg.sha512",
+        "mono.reflection.nuspec"
       ]
     },
     "System.Buffers/4.5.1": {
@@ -476,6 +500,7 @@
   },
   "projectFileDependencyGroups": {
     ".NETFramework,Version=v4.7.2": [
+      "Mono.Reflection >= 2.0.0",
       "System.Text.Json >= 7.0.1"
     ]
   },
@@ -522,6 +547,10 @@
       "net472": {
         "targetAlias": "net472",
         "dependencies": {
+          "Mono.Reflection": {
+            "target": "Package",
+            "version": "[2.0.0, )"
+          },
           "System.Text.Json": {
             "target": "Package",
             "version": "[7.0.1, )"

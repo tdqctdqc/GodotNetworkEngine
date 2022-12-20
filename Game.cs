@@ -22,11 +22,11 @@ public class Game : Node
         session.Name = "Session";        
         AddChild(session);
 
-        
+        var meta = Serializer.GetEntityMeta<Player>();
         var player = new Player(1, "doot", new HostWriteKey());
-        var playerJson = Serializer.Serialize(player);
-        var player2 = Serializer.Deserialize<Player>(playerJson);
-        GD.Print(player2.Name.Value);
+        var playerJson = Serializer.GetEntityMeta<Player>().Serialize(player);
+        GD.Print(playerJson);
+        var player2 = meta.Deserialize(playerJson);
     }
 }
 

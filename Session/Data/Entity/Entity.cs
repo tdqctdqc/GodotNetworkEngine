@@ -4,7 +4,7 @@ using System.Collections.Generic;
 
 public abstract class Entity : Serializable
 {
-    public EntityStruct<int> Id { get; set; }
+    public EntityStruct<int> Id { get; private set; }
 
     protected Entity(int id, HostWriteKey key) : base()
     {

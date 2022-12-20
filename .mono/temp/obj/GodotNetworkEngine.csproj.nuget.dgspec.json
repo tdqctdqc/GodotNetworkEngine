@@ -43,6 +43,10 @@
         "net472": {
           "targetAlias": "net472",
           "dependencies": {
+            "Mono.Reflection": {
+              "target": "Package",
+              "version": "[2.0.0, )"
+            },
             "System.Text.Json": {
               "target": "Package",
               "version": "[7.0.1, )"

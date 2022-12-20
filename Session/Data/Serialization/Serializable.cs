@@ -6,7 +6,7 @@ using System.Text.Json.Nodes;
 
 public abstract class Serializable
 {
-    protected ISerializableMeta _meta => Serializer.GetSerializableMeta(GetType());
+    protected IEntityMeta _meta => Serializer.GetEntityMeta(GetType());
 
     protected Serializable()
     {

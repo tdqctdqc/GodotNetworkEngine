@@ -17,7 +17,7 @@ public class EntityString
     {
         return new EntityString(value, entity.Id.Value, name);
     }
-    public void Set(StrongWriteKey key, string newValue, IRepo repo, IServer server)
+    public void Update(StrongWriteKey key, string newValue, IRepo repo, IServer server)
     {
         Value = newValue;
         repo.RaiseValueChangedNotice(Name, EntityId, key);
@@ -26,5 +26,18 @@ public class EntityString
             var update = EntityVarUpdate.Encode<string>(Name, EntityId, repo.Domain, newValue, hKey);
             ((HostServer)server).QueueUpdate(update);
         }
+    }
+    public void ProcedureSet(ProcedureWriteKey key, string newValue)
+    {
+        Value = newValue;
+    }
+    public static string Serialize(EntityString es)
+    {
+        return es.Value;
+    }
+    //have to make this accept actual entity
+    public static EntityString Deserialize(string json, string name, Entity entity)
+    {
+        return Construct(json, entity, name);
     }
 }

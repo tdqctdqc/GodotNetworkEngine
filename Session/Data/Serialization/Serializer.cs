@@ -11,31 +11,12 @@ public class Serializer
 {
     private static Dictionary<Type, Func<string, object>> _deserializers;
     private static Dictionary<Type, Func<object, string>> _serializers;
-    private static Dictionary<Type, ISerializableMeta> _serializableMetas;
-    public static ISerializableMeta GetSerializableMeta(Type type) => _serializableMetas[type];
-    public static string Serialize<T>(T t)
+    private static Dictionary<Type, IEntityMeta> _serializableMetas;
+    public static IEntityMeta GetEntityMeta(Type type) => _serializableMetas[type];
+
+    public static EntityMeta<T> GetEntityMeta<T>() where T : Entity
     {
-        if (t is Serializable s)
-        {
-            return _serializableMetas[s.GetType()].SerializeSerializable(s);
-        }
-        if (t is Type type)
-        {
-            return type.Name;
-        }
-        return System.Text.Json.JsonSerializer.Serialize(t);
-    }
-    public static string Serialize(object o)
-    {
-        if (o is Serializable s)
-        {
-            return _serializableMetas[s.GetType()].SerializeSerializable(s);
-        }
-        if (o is Type t)
-        {
-            return t.Name;
-        }
-        return System.Text.Json.JsonSerializer.Serialize(o);
+        return (EntityMeta<T>)_serializableMetas[typeof(T)];
     }
     public static T Deserialize<T>(string json)
     {
@@ -55,16 +36,16 @@ public class Serializer
     }
     public static void Setup()
     {
-        var reference = nameof(SerializableMeta<Serializable>.ForReference);
-        _serializableMetas = new Dictionary<Type, ISerializableMeta>();
-        var serializableTypes = Assembly.GetExecutingAssembly().GetConcreteTypesOfType<Serializable>();
-        var serializableMetaType = typeof(SerializableMeta<>);
-        foreach (var serializableType in serializableTypes)
+        var reference = nameof(EntityMeta<Entity>.ForReference);
+        _serializableMetas = new Dictionary<Type, IEntityMeta>();
+        var entityTypes = Assembly.GetExecutingAssembly().GetConcreteTypesOfType<Entity>();
+        var metaTypes = typeof(EntityMeta<>);
+        foreach (var entityType in entityTypes)
         {
-            var genericMeta = serializableMetaType.MakeGenericType(serializableType);
+            var genericMeta = metaTypes.MakeGenericType(entityType);
             var constructor = genericMeta.GetConstructors()[0];
             var meta = constructor.Invoke(null);
-            _serializableMetas.Add(serializableType, (ISerializableMeta)meta);
+            _serializableMetas.Add(entityType, (IEntityMeta)meta);
         }
     }
 }
