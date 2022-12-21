@@ -10,8 +10,8 @@ public class EntityVariableAttribute : Attribute
     public static TVariable<TValue> Construct(TValue value, Entity entity, string name)
     public void Update(StrongWriteKey key, TValue newValue, IRepo repo, IServer server)
     public void ProcedureSet(ProcedureWriteKey key, TValue newValue)
-    void ProcedureSetField(ProcedureWriteKey key, object newFieldValue, string fieldName)
     
+    Procedures can set fields of Value by custom methods with signature (ProcedureWriteKey key, ...)    
     //TODO make these require writeKey again?
     public static string Serialize(TVariable<TValue> es)
     public static TVariable<TValue> Deserialize(string json, string name, Entity entity)

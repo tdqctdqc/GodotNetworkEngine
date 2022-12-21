@@ -1,6 +1,8 @@
 using Godot;
 using System;
+
 [EntityVariable]
+
 public struct EntityStruct<TValue> where TValue: struct
 {
     public string Name { get; private set; }
@@ -9,6 +11,7 @@ public struct EntityStruct<TValue> where TValue: struct
     private EntityStruct(TValue value, int entityId, string name)
     {
         //only want to call this for deserialization and from construct
+        //TODO check that TValue doesnt have class fields or struct fields with class fields etc
         Name = name;
         Value = value;
         EntityId = entityId;
@@ -26,11 +29,6 @@ public struct EntityStruct<TValue> where TValue: struct
             var update = EntityVarUpdate.Encode<TValue>(Name, EntityId, repo.Domain, newValue, hKey);
             ((HostServer)server).QueueUpdate(update);
         }
-    }
-
-    public void ProcedureSetField<TStruct>(ProcedureWriteKey key, TStruct newFieldValue, string fieldName) where TStruct : struct
-    {
-        //TODO make register field setters
     }
     public void SetByProcedure(ProcedureWriteKey key, TValue newValue)
     {

@@ -1,6 +1,7 @@
 
 using Godot;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 public class Game : Node
@@ -22,21 +23,20 @@ public class Game : Node
         session.Name = "Session";        
         AddChild(session);
 
-        var meta = Serializer.GetEntityMeta<Player>();
-        var player = new Player(1, "doot", new HostWriteKey());
-        var playerJson = Serializer.GetEntityMeta<Player>().Serialize(player);
-        // GD.Print(playerJson);
-        var player2 = meta.Deserialize(playerJson);
-        GD.Print(player2.Name.Value);
     }
 }
 
 public class Doot
 {
-    public int Int { get; set; }
+    public Vector2 V2 { get; private set; }
 
-    public Doot(int i)
+    public Doot()
     {
-        Int = i;
+        V2 = Vector2.One;
+    }
+
+    public void DootF(Action<Vector2> act)
+    {
+        act(V2);
     }
 }
