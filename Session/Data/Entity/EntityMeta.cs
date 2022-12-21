@@ -29,8 +29,6 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     public EntityMeta()
     {
         var entityType = typeof(T);
-        GD.Print(entityType.Name);
-
         //bc with generic parameters it will not capture all the classes
         if (entityType.ContainsGenericParameters) throw new Exception(); 
         
@@ -59,13 +57,13 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         var propType = p.PropertyType;
         if (propType.HasAttribute<EntityVariableAttribute>() == false) throw new Exception();
         
-        _fieldDeserializers[name] = MakeDeserializerNew(p);
+        _fieldDeserializers[name] = MakeDeserializer(p);
         _fieldSerializers[name] = MakeSerializer(p);
         _fieldGetters[name] = MakeGetter(p);
         _fieldInitializers[name] = MakeSetter(p);
     }
 
-    private TDelegate MakeDelegate<TDelegate>(PropertyInfo p, string innerMethodName, MethodInfo propMethod)
+    private TDelegate MakeCoercedDelegate<TDelegate>(PropertyInfo p, string innerMethodName, MethodInfo propMethod)
         where TDelegate : Delegate
     {
         var innerMethodInfo = typeof(EntityMeta<T>).GetMethod(innerMethodName,
@@ -79,72 +77,44 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         return (i) => del((TProperty)i);
     }
 
-    private Func<string, string, T, object> MakeDeserializerNew(PropertyInfo p)
+    private Func<string, string, T, object> MakeDeserializer(PropertyInfo p)
     {
-        var deserializeMi = p.PropertyType.GetMethod("Deserialize", BindingFlags.Static | BindingFlags.Public);
-        return MakeDelegate<Func<string, string, T, object>>(p, nameof(MakeDeserializerInnerNew), deserializeMi);
+        var deserializeMi = p.PropertyType.GetMethod(EntityVariableAttribute.DeserializeName, BindingFlags.Static | BindingFlags.Public);
+        return MakeCoercedDelegate<Func<string, string, T, object>>(p, nameof(MakeDeserializerInner), deserializeMi);
     }
-
-    private static Func<string, string, T, object> MakeDeserializerInnerNew<TProperty>(MethodInfo mi)
+    private static Func<string, string, T, object> MakeDeserializerInner<TProperty>(MethodInfo mi)
     {
         var del = mi.MakeStaticMethodDelegate<Func<string, string, T, TProperty>>();
         return (json, name, entity) => del(json, name, entity);
     }
-    
-    
-    
-    private Func<string, string, T, object> MakeDeserializer(PropertyInfo p)
-    {
-        var inner = typeof(EntityMeta<T>).GetMethod(nameof(MakeDeserializerInner),
-            BindingFlags.Static | BindingFlags.NonPublic);
-        var innerGeneric = inner.MakeGenericMethod(p.PropertyType);
-        return (Func<string, string, T, object>) innerGeneric.Invoke(null, new []{p});
-    }
-    private static Func<string, string, T, object> MakeDeserializerInner<TProperty>(PropertyInfo p)
-    {
-        var serializeMi = p.PropertyType.GetMethod("Deserialize", BindingFlags.Static | BindingFlags.Public);
-        var del = serializeMi.MakeStaticMethodDelegate<Func<string, string, T, TProperty>>();
-        return (json, name, entity) => del.Invoke(json, name, entity);
-    }
     private Func<object, string> MakeSerializer(PropertyInfo p)
     {
-        var inner = typeof(EntityMeta<T>).GetMethod(nameof(MakeSerializerInner),
-            BindingFlags.Static | BindingFlags.NonPublic);
-        var innerGeneric = inner.MakeGenericMethod(p.PropertyType);
-        return (Func<object, string>) innerGeneric.Invoke(null, new []{p});
+        var serializeMi = p.PropertyType.GetMethod(EntityVariableAttribute.SerializeName, BindingFlags.Static | BindingFlags.Public);
+        return MakeCoercedDelegate<Func<object, string>>(p, nameof(MakeSerializerInner), serializeMi);
     }
-    private static Func<object, string> MakeSerializerInner<TProperty>(PropertyInfo p)
+    private static Func<object, string> MakeSerializerInner<TProperty>(MethodInfo mi)
     {
-        var serializeMi = p.PropertyType.GetMethod("Serialize", BindingFlags.Static | BindingFlags.Public);
-        var del = serializeMi.MakeStaticMethodDelegate<Func<TProperty, string>>();
-        return o => del.Invoke((TProperty) o);
+        var del = mi.MakeStaticMethodDelegate<Func<TProperty, string>>();
+        return (property) => del((TProperty)property);
     }
     private Action<T, object> MakeSetter(PropertyInfo p)
     {
-        var inner = typeof(EntityMeta<T>).GetMethod(nameof(MakeSetterInner),
-            BindingFlags.Static | BindingFlags.NonPublic);
-        var innerGeneric = inner.MakeGenericMethod(p.PropertyType);
-        return (Action<T, object>) innerGeneric.Invoke(null, new[] {p});
-    }
-    private static Action<object, object> MakeSetterInner<TProperty>(PropertyInfo p)
-    {
         var mi = p.DeclaringType.GetProperty(p.Name).GetSetMethod(true);
-        var setterType = ReflectionExt.MakeCustomDelegateType(typeof(Action<,>), new[] {typeof(T), p.PropertyType});
-        var setter = (Action<T, TProperty>)mi.MakeInstanceMethodDelegate(setterType);
-        return (entity, variable) => setter((T)entity, (TProperty)variable);
+        return MakeCoercedDelegate<Action<T, object>>(p, nameof(MakeSetterInner), mi);
+    }
+    private static Action<T, object> MakeSetterInner<TProperty>(MethodInfo mi)
+    {
+        var del = mi.MakeInstanceMethodDelegate<Action<T, TProperty>>();
+        return (entity, variable) => del(entity, (TProperty)variable);
     }
     private Func<T, object> MakeGetter(PropertyInfo p)
     {
-        var inner = typeof(EntityMeta<T>).GetMethod(nameof(MakeGetterInner),
-            BindingFlags.Static | BindingFlags.NonPublic);
-        var innerGeneric = inner.MakeGenericMethod(p.PropertyType);
-        return (Func<T, object>) innerGeneric.Invoke(null, new[] {p});
-    }
-    private static Func<T, object> MakeGetterInner<TProperty>(PropertyInfo p)
-    {
         var mi = p.GetGetMethod();
-        var getterType = ReflectionExt.MakeCustomDelegateType(typeof(Func<,>), new[] {typeof(T), p.PropertyType});
-        var getter = (Func<T, TProperty>)mi.MakeInstanceMethodDelegate(getterType);
+        return MakeCoercedDelegate<Func<T, object>>(p, nameof(MakeGetterInner), mi);
+    }
+    private static Func<T, object> MakeGetterInner<TProperty>(MethodInfo mi)
+    {
+        var getter = mi.MakeInstanceMethodDelegate<Func<T, TProperty>>();
         return entity => getter(entity);
     }
     private void SetConstructor(Type serializableType)
@@ -173,9 +143,9 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
 
         return jsonArray.ToJsonString();
     }
-    public void Initialize(Serializable serializable, string json)
+    public void Initialize(Entity entity, string json)
     {
-        var t = (T) serializable;
+        var t = (T) entity;
         var valJsons = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
         for (int i = 0; i < valJsons.Count; i++)
         {

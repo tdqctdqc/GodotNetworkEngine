@@ -11,8 +11,6 @@ public sealed class Player : Entity
 
     private static Player DeserializeConstructor(string json)
     {
-        GD.Print("calling deserialize constructor");
-
         return new Player(json);
     }
     private Player(string json) : base(json) { }

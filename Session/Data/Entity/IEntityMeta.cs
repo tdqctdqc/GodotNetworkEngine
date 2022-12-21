@@ -7,5 +7,5 @@ public interface IEntityMeta
     IReadOnlyList<string> FieldNames { get; }
     IReadOnlyList<Type> FieldTypes { get; }
     // Serializable Deserialize(string json);
-    void Initialize(Serializable serializable, string json);
+    void Initialize(Entity entity, string json);
 }

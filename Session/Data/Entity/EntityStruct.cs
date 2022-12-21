@@ -27,7 +27,12 @@ public struct EntityStruct<TValue> where TValue: struct
             ((HostServer)server).QueueUpdate(update);
         }
     }
-    public void ProcedureSet(ProcedureWriteKey key, TValue newValue)
+
+    public void ProcedureSetField<TStruct>(ProcedureWriteKey key, TStruct newFieldValue, string fieldName) where TStruct : struct
+    {
+        //TODO make register field setters
+    }
+    public void SetByProcedure(ProcedureWriteKey key, TValue newValue)
     {
         Value = newValue;
     }
@@ -41,19 +46,4 @@ public struct EntityStruct<TValue> where TValue: struct
         var value = System.Text.Json.JsonSerializer.Deserialize<TValue>(json);
         return Construct(value, entity, name);
     }
-}
-public class EntityVariableAttribute : Attribute
-{
-    /*
-    Must implement
-    public static TVariable<TValue> Construct(TValue value, Entity entity, string name)
-    public void Update(StrongWriteKey key, TValue newValue, IRepo repo, IServer server)
-    public void ProcedureSet(ProcedureWriteKey key, TValue newValue)
-    public static string Serialize(TVariable<TValue> es)
-    public static TVariable<TValue> Deserialize(string json, string name, Entity entity)
-    
-    Shouldn't set TValue from outside the constructor, Update method, or procedure set method
-    Shouldn't set fields of the TValue outside an entity procedure 
-    Procedure set method should only be called inside entity procedures
-    */
 }
