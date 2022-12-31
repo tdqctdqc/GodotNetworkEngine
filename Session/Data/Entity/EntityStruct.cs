@@ -21,18 +21,16 @@ public class EntityStruct<TValue> where TValue: struct
     {
         return new EntityStruct<TValue>(value, entity.Id.Value, name);
     }
-    public void Update(HostWriteKey key, TValue newValue, IRepo repo, IServer server)
+    public void Update(HostWriteKey key, TValue newValue, IRepo repo, HostServer server)
     {
         Value = newValue;
         repo.RaiseValueChangedNotice(Name, EntityId, key);
         var update = EntityVarUpdate.Encode<TValue>(Name, EntityId, newValue, key);
-        ((HostServer)server).QueueUpdate(update);
+        server.QueueUpdate(update);
     }
     public static void ReceiveUpdate(EntityStruct<TValue> str, ServerWriteKey key, string newValueJson, IRepo repo)
     {
-        GD.Print("new value json is " + newValueJson);
         var value = Serializer.Deserialize<TValue>(newValueJson);
-        GD.Print("new value is " + value);
         str.Value = value;
         repo?.RaiseValueChangedNotice(str.Name, str.EntityId, key);
     }

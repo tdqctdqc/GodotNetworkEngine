@@ -18,15 +18,12 @@ public class EntityString
     {
         return new EntityString(value, entity.Id.Value, name);
     }
-    public void Update(StrongWriteKey key, string newValue, IRepo repo, IServer server)
+    public void Update(HostWriteKey key, string newValue, IRepo repo, HostServer server)
     {
         Value = newValue;
         repo.RaiseValueChangedNotice(Name, EntityId, key);
-        if (key is HostWriteKey hKey)
-        {
-            var update = EntityVarUpdate.Encode<string>(Name, EntityId, newValue, hKey);
-            ((HostServer)server).QueueUpdate(update);
-        }
+        var update = EntityVarUpdate.Encode<string>(Name, EntityId, newValue, key);
+        server.QueueUpdate(update);
     }
     public static void ReceiveUpdate(EntityString str, ServerWriteKey key, string newValueJson, IRepo repo)
     {

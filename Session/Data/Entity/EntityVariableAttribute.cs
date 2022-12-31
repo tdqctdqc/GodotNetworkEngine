@@ -14,7 +14,6 @@ public class EntityVariableAttribute : Attribute
     
     
     // Procedures can set fields of Value by custom methods with signature (ProcedureWriteKey key, ...)    
-    // //TODO make these require writeKey again?
     // public static string Serialize(TVariable<TValue> es)
     // public static TVariable<TValue> Deserialize(string json, string name, Entity entity)
     //

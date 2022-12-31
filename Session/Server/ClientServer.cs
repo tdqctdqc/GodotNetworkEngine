@@ -5,6 +5,25 @@ using System.Collections.Generic;
 public class ClientServer : Node, IServer
 {
     private ServerWriteKey _key = new ServerWriteKey();
+    private NetworkedMultiplayerENet _network;
+    private string _ip = "127.0.0.1";
+    private int _port = 3306;
+    public override void _Ready()
+    {
+        _network = new NetworkedMultiplayerENet();
+        _network.CreateClient(_ip, _port);
+        GetTree().NetworkPeer = _network;
+        _network.Connect("connection_failed", this, nameof(OnConnectionFailed));
+    }
+    [Remote] public void OnConnectionSucceeded()
+    {
+        GD.Print("connection succeeded");
+    }
+    [Remote] public void OnConnectionFailed()
+    {
+        GD.Print("connection failed");
+
+    }
     [Remote] public void ReceiveUpdates(string updatesJson, string updateTypesJson)
     {
         var updatesJsonsList = System.Text.Json.JsonSerializer.Deserialize<List<string>>(updatesJson);
@@ -16,6 +35,10 @@ public class ClientServer : Node, IServer
             if (updateType == EntityVarUpdate.UpdateType)
             {
                 EntityVarUpdate.DeserializeAndEnact(updatesJsonsList[i], _key);
+            }
+            else if (updateType == EntityCreationUpdate.UpdateType)
+            {
+                EntityCreationUpdate.DeserializeAndEnact(updatesJsonsList[i], _key);
             }
             else
             {

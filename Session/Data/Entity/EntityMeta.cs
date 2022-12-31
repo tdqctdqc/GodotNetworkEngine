@@ -40,7 +40,8 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         
         var properties = entityType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         _fieldNames = properties.Select(p => p.Name).ToList();
-        
+        _fieldNames.Remove("Id");
+        _fieldNames.Insert(0, "Id");
         
         _fieldDeserializers = new Dictionary<string, Func<string, string, T, object>>();
         _fieldSerializers = new Dictionary<string, Func<object, string>>();
@@ -153,13 +154,14 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         _deserializer = constructor.MakeStaticMethodDelegate<Func<string, T>>();
     }
 
-    public T Deserialize(string json)
+    public Entity Deserialize(string json)
     {
         return _deserializer(json);
     }
 
-    public string Serialize(T t)
+    public string Serialize(Entity entity)
     {
+        var t = (T) entity;
         var jsonArray = new System.Text.Json.Nodes.JsonArray();
         for (int i = 0; i < _fieldNames.Count; i++)
         {
@@ -174,6 +176,7 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     {
         var t = (T) entity;
         var valJsons = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
+        
         for (int i = 0; i < valJsons.Count; i++)
         {
             var fieldName = _fieldNames[i];

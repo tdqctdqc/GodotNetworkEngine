@@ -11,23 +11,26 @@ public class Session : Node, ISession
 
     public void Start(bool isHost)
     {
+        IServer server;
         if (isHost)
         {
-            var server = new HostServer();
+            var hServer = new HostServer();
+            server = hServer;
             var logic = new HostLogic();
-            server.SetDependencies(logic);
-            logic.SetDependencies(server);
-            server.Name = "Server";
-            AddChild(server);
+            hServer.SetDependencies(logic);
+            logic.SetDependencies(hServer);
+            hServer.Name = "Server";
+            AddChild(hServer);
         }
         else
         {
-            var server = new ClientServer();
-            server.Name = "Server";
-            AddChild(server);
+            var cServer = new ClientServer();
+            server = cServer;
+            cServer.Name = "Server";
+            AddChild(cServer);
         }
         
-        Data = new Data();
+        Data = new Data(server);
     }
 
 //  // Called every frame. 'delta' is the elapsed time since the previous frame.
