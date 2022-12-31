@@ -1,11 +1,14 @@
 using Godot;
 using System;
 
-public struct EntityRef<TRef> where TRef : Entity
+[EntityVariable]
+[EntityRef]
+public class EntityRef<TRef> where TRef : Entity
 {
     public string Name { get; private set; }
     public int HostId { get; private set; }
     public int RefId { get; private set; }
+    public TRef ReferedEntity => (TRef) Game.I.Session.Data[RefId];
     public EntityRef(int refId, int hostId, string name)
     {
         //only want to call this for deserialization and from construct
@@ -18,21 +21,33 @@ public struct EntityRef<TRef> where TRef : Entity
     {
         return new EntityRef<TRef>(refer.Id.Value, host.Id.Value, name);
     }
-    public void Set(StrongWriteKey key, int newValue, IRepo repo, IServer server)
+    public void Update(StrongWriteKey key, int newValue, IRepo repo, IServer server)
     {
         RefId = newValue;
         repo.RaiseValueChangedNotice(Name, HostId, key);
         if (key is HostWriteKey hKey)
         {
-            var update = EntityVarUpdate.Encode<int>(Name, HostId, repo.Domain, newValue, hKey);
+            var update = EntityVarUpdate.Encode<int>(Name, HostId, newValue, hKey);
             ((HostServer)server).QueueUpdate(update);
         }
     }
-    public bool TryGet(out TRef val, Action<int> invalidHandler = null)
+    public static void ReceiveUpdate(EntityRef<TRef> str, ServerWriteKey key, string newValueJson, IRepo repo)
     {
-        val = (TRef) Game.I.Session.Data[RefId];
-        var valid = val == null;
-        if (valid == false) invalidHandler?.Invoke(RefId);
-        return valid;
+        str.RefId = System.Text.Json.JsonSerializer.Deserialize<int>(newValueJson);
+        repo.RaiseValueChangedNotice(str.Name, str.HostId, key);
+    }
+    public void SetByProcedure(ProcedureWriteKey key, int newRefId)
+    {
+        RefId = newRefId;
+    }
+    public static string Serialize(EntityRef<TRef> es)
+    {
+        return System.Text.Json.JsonSerializer.Serialize<int>(es.RefId);
+    }
+    public static EntityRef<TRef> Deserialize(string json, string name, Entity entity)
+    {
+        var refId = System.Text.Json.JsonSerializer.Deserialize<int>(json);
+        var referedEntity = (TRef) Game.I.Session.Data[refId];
+        return Construct(referedEntity, entity, name);
     }
 }

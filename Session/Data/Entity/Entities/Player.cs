@@ -8,7 +8,6 @@ public sealed class Player : Entity
     {
         Name = EntityString.Construct(name, this, nameof(Name));
     }
-
     private static Player DeserializeConstructor(string json)
     {
         return new Player(json);

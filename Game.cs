@@ -18,25 +18,10 @@ public class Game : Node
 
         Serializer.Setup();
         
-        var session = new HostSession();
+        var session = new Session();
         Session = session;
         session.Name = "Session";        
         AddChild(session);
-
-    }
-}
-
-public class Doot
-{
-    public Vector2 V2 { get; private set; }
-
-    public Doot()
-    {
-        V2 = Vector2.One;
-    }
-
-    public void DootF(Action<Vector2> act)
-    {
-        act(V2);
+        session.Start(true);
     }
 }

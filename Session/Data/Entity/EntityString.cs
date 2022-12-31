@@ -1,6 +1,7 @@
 using Godot;
 using System;
 [EntityVariable]
+[EntityString]
 public class EntityString 
 {
     public string Name { get; private set; }
@@ -23,9 +24,14 @@ public class EntityString
         repo.RaiseValueChangedNotice(Name, EntityId, key);
         if (key is HostWriteKey hKey)
         {
-            var update = EntityVarUpdate.Encode<string>(Name, EntityId, repo.Domain, newValue, hKey);
+            var update = EntityVarUpdate.Encode<string>(Name, EntityId, newValue, hKey);
             ((HostServer)server).QueueUpdate(update);
         }
+    }
+    public static void ReceiveUpdate(EntityString str, ServerWriteKey key, string newValueJson, IRepo repo)
+    {
+        str.Value = newValueJson;
+        repo.RaiseValueChangedNotice(str.Name, str.EntityId, key);
     }
     public void ProcedureSet(ProcedureWriteKey key, string newValue)
     {
@@ -35,7 +41,6 @@ public class EntityString
     {
         return es.Value;
     }
-    //have to make this accept actual entity
     public static EntityString Deserialize(string json, string name, Entity entity)
     {
         return Construct(json, entity, name);

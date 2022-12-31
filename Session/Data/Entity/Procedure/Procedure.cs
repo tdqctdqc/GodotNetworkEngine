@@ -21,7 +21,6 @@ public class Proc : Procedure<Player>
     public static void Enact(ProcedureWriteKey key, object args)
     {
         var pArgs = (ProcArgs) args;
-        
     }
     private class ProcArgs
     {

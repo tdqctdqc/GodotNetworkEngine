@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Text.Json;
 using System.Text.Json.Nodes;
 using Mono.Reflection;
 
@@ -10,8 +11,8 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
 {
     public IReadOnlyList<string> FieldNames => _fieldNames;
     private List<string> _fieldNames;
-    public IReadOnlyList<Type> FieldTypes => _fieldTypes;
-    private List<Type> _fieldTypes;
+    public IReadOnlyDictionary<string, Type> FieldTypes => _fieldTypes;
+    private Dictionary<string, Type> _fieldTypes;
     
     //args are val, name, entityId
     private Dictionary<string, Func<string, string, T, object>> _fieldDeserializers; 
@@ -19,6 +20,7 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     private Dictionary<string, Func<object, string>> _fieldSerializers; 
     private Dictionary<string, Func<T, object>> _fieldGetters; 
     private Dictionary<string, Action<T, object>> _fieldInitializers;
+    private Dictionary<string, Action<T, ServerWriteKey, string, IRepo>> _fieldUpdaters;
     private Func<string, T> _deserializer;
 
     public void ForReference()
@@ -38,11 +40,13 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         
         var properties = entityType.GetProperties(BindingFlags.Instance | BindingFlags.Public);
         _fieldNames = properties.Select(p => p.Name).ToList();
-        _fieldTypes = properties.Select(p => p.PropertyType).ToList();
+        
+        
         _fieldDeserializers = new Dictionary<string, Func<string, string, T, object>>();
         _fieldSerializers = new Dictionary<string, Func<object, string>>();
         _fieldGetters = new Dictionary<string, Func<T, object>>();
         _fieldInitializers = new Dictionary<string, Action<T, object>>();
+        _fieldUpdaters = new Dictionary<string, Action<T, ServerWriteKey, string, IRepo>>();
 
         foreach (var propertyInfo in properties)
         {
@@ -55,12 +59,14 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     {
         var name = p.Name;
         var propType = p.PropertyType;
+        
         if (propType.HasAttribute<EntityVariableAttribute>() == false) throw new Exception();
         
         _fieldDeserializers[name] = MakeDeserializer(p);
         _fieldSerializers[name] = MakeSerializer(p);
         _fieldGetters[name] = MakeGetter(p);
         _fieldInitializers[name] = MakeSetter(p);
+        _fieldUpdaters[name] = MakeUpdater(p);
     }
 
     private TDelegate MakeCoercedDelegate<TDelegate>(PropertyInfo p, string innerMethodName, MethodInfo propMethod)
@@ -114,8 +120,29 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     }
     private static Func<T, object> MakeGetterInner<TProperty>(MethodInfo mi)
     {
+        
         var getter = mi.MakeInstanceMethodDelegate<Func<T, TProperty>>();
         return entity => getter(entity);
+    }
+
+    private Action<T, ServerWriteKey, string, IRepo> MakeUpdater(PropertyInfo p)
+    {
+        var innerMethodInfo = typeof(EntityMeta<T>).GetMethod(nameof(MakeUpdaterInner),
+            BindingFlags.Instance | BindingFlags.NonPublic);
+        var innerGeneric = innerMethodInfo.MakeGenericMethod(p.PropertyType);
+        return  (Action<T, ServerWriteKey, string, IRepo>)innerGeneric.Invoke(this, new object[]{p});
+    }
+
+    private Action<T, ServerWriteKey, string, IRepo> MakeUpdaterInner<TEntityVar>(PropertyInfo p)
+    {
+        var updater = p.PropertyType.GetMethod("ReceiveUpdate",
+            BindingFlags.Static | BindingFlags.Public);
+        var propName = p.Name;
+        var del = updater.MakeStaticMethodDelegate<Action<TEntityVar, ServerWriteKey, string, IRepo>>();
+        return (entity, key, newVal, repo) =>
+        {
+            del((TEntityVar)_fieldGetters[propName](entity), key, newVal, repo);
+        };
     }
     private void SetConstructor(Type serializableType)
     {
@@ -153,5 +180,10 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
             var value = _fieldDeserializers[fieldName](valJsons[i], fieldName, t);
             _fieldInitializers[fieldName](t, value);
         }
+    }
+
+    public void UpdateEntityVar(string fieldName, Entity t, ServerWriteKey key, string newValueJson, IRepo repo)
+    {
+        _fieldUpdaters[fieldName]((T) t, key, newValueJson, repo);
     }
 }

@@ -32,4 +32,9 @@ public class Serializer
             _serializableMetas.Add(entityType, (IEntityMeta)meta);
         }
     }
+
+    public static TValue Deserialize<TValue>(string json)
+    {
+        return System.Text.Json.JsonSerializer.Deserialize<TValue>(json);
+    }
 }

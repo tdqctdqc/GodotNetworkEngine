@@ -1,9 +1,10 @@
 using Godot;
 using System;
+using System.Text.Json;
 
 [EntityVariable]
 
-public struct EntityStruct<TValue> where TValue: struct
+public class EntityStruct<TValue> where TValue: struct
 {
     public string Name { get; private set; }
     public TValue Value { get; private set; }
@@ -20,15 +21,20 @@ public struct EntityStruct<TValue> where TValue: struct
     {
         return new EntityStruct<TValue>(value, entity.Id.Value, name);
     }
-    public void Update(StrongWriteKey key, TValue newValue, IRepo repo, IServer server)
+    public void Update(HostWriteKey key, TValue newValue, IRepo repo, IServer server)
     {
         Value = newValue;
         repo.RaiseValueChangedNotice(Name, EntityId, key);
-        if (key is HostWriteKey hKey)
-        {
-            var update = EntityVarUpdate.Encode<TValue>(Name, EntityId, repo.Domain, newValue, hKey);
-            ((HostServer)server).QueueUpdate(update);
-        }
+        var update = EntityVarUpdate.Encode<TValue>(Name, EntityId, newValue, key);
+        ((HostServer)server).QueueUpdate(update);
+    }
+    public static void ReceiveUpdate(EntityStruct<TValue> str, ServerWriteKey key, string newValueJson, IRepo repo)
+    {
+        GD.Print("new value json is " + newValueJson);
+        var value = Serializer.Deserialize<TValue>(newValueJson);
+        GD.Print("new value is " + value);
+        str.Value = value;
+        repo?.RaiseValueChangedNotice(str.Name, str.EntityId, key);
     }
     public void SetByProcedure(ProcedureWriteKey key, TValue newValue)
     {
