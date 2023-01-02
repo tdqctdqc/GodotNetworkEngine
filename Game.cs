@@ -26,11 +26,23 @@ public class Game : Node
         session.Name = "Session";        
         AddChild(session);
         session.Start(isHost);
+
     }
 
     public void AddEntity()
     {
         var player = new Player(1, "doot", new HostWriteKey());
         Session.Data.AddEntity(player, typeof(BaseDomain), new HostWriteKey());
+    }
+
+    public void ChangeEntity()
+    {
+        var player = (Player) Game.I.Session.Data[1];
+        player.Name.Update(new HostWriteKey(), "doot2", HostServer.ForTest);
+    }
+
+    public void TriggerProcedure()
+    {
+        ExampleProcedure.EnactAndPushToServer(HostServer.ForTest, new HostWriteKey(), 1, "doot");
     }
 }

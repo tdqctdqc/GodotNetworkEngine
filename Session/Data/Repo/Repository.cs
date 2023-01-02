@@ -10,7 +10,7 @@ public class Repository<T> : IRepo where T : Entity
     private Dictionary<string, Action<int, WriteKey>> _entityValueUpdatedActions;
     public T this[int id] => _entitiesById[id];
     protected Dictionary<int, T> _entitiesById;
-    public IReadOnlyList<T> Entities => _entities;
+    public IReadOnlyList<Entity> Entities => _entities;
     private List<T> _entities;
     private ClientWriteKey _weakKey;
 
@@ -62,6 +62,7 @@ public class Repository<T> : IRepo where T : Entity
     public void RaiseValueChangedNotice(string valueName, int id, WriteKey key)
     {
         if (_entitiesById.ContainsKey(id) == false) throw new Exception();
-        _entityValueUpdatedActions[valueName]?.Invoke(id, key);
+        if(_entityValueUpdatedActions.ContainsKey(valueName))
+            _entityValueUpdatedActions[valueName].Invoke(id, key);
     }
 }

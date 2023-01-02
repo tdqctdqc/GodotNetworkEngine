@@ -1,33 +1,36 @@
 using Godot;
 using System;
+using System.Text.Json;
 
 [EntityProcedure]
-public abstract class Procedure<T> where T : Entity
+public abstract class Procedure
 {
     protected static ProcedureWriteKey Key = new ProcedureWriteKey();
 }
 
-public class Proc : Procedure<Player>
+public class ExampleProcedure : Procedure
 {
-    public static object GetArgs(Player t)
+    public static void EnactAndPushToServer(HostServer server, HostWriteKey key, int intField, string stringField)
     {
-        return new ProcArgs(1, "doot");
-    }
-    public static void EnactAndPushToServer(HostWriteKey key, object args)
-    {
+        var args = new ProcArgs(intField, stringField);
         Enact(Key, args);
-        //TODO send update to server
+        var update = new ProcedureUpdate(nameof(ExampleProcedure), JsonSerializer.Serialize(args));
+        server.QueueUpdate(update);
     }
-    public static void Enact(ProcedureWriteKey key, object args)
+
+    public static void ReceiveFromServer(ServerWriteKey key, string json)
     {
-        var pArgs = (ProcArgs) args;
+        var args = JsonSerializer.Deserialize<ProcArgs>(json);
+        Enact(Key, args);
+    }
+    private static void Enact(ProcedureWriteKey key, ProcArgs args)
+    {
+        GD.Print(args.StringField);
     }
     private class ProcArgs
     {
-        public readonly int IntField;
-        public readonly int PlayerId;
-        public readonly string StringField;
-
+        public int IntField { get; set; }
+        public string StringField { get; set; }
         public ProcArgs(int intField, string stringField)
         {
             IntField = intField;

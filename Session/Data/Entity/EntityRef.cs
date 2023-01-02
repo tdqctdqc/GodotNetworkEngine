@@ -21,17 +21,17 @@ public class EntityRef<TRef> where TRef : Entity
     {
         return new EntityRef<TRef>(refer.Id.Value, host.Id.Value, name);
     }
-    public void Update(HostWriteKey key, int newValue, IRepo repo, HostServer server)
+    public void Update(HostWriteKey key, int newValue, HostServer server)
     {
         RefId = newValue;
-        repo.RaiseValueChangedNotice(Name, HostId, key);
+        Game.I.Session.Data.EntityRepos[HostId].RaiseValueChangedNotice(Name, HostId, key);
         var update = EntityVarUpdate.Encode<int>(Name, HostId, newValue, key);
         server.QueueUpdate(update);
     }
-    public static void ReceiveUpdate(EntityRef<TRef> str, ServerWriteKey key, string newValueJson, IRepo repo)
+    public static void ReceiveUpdate(EntityRef<TRef> str, ServerWriteKey key, string newValueJson)
     {
         str.RefId = System.Text.Json.JsonSerializer.Deserialize<int>(newValueJson);
-        repo.RaiseValueChangedNotice(str.Name, str.HostId, key);
+        Game.I.Session.Data.EntityRepos[str.HostId].RaiseValueChangedNotice(str.Name, str.HostId, key);
     }
     public void SetByProcedure(ProcedureWriteKey key, int newRefId)
     {

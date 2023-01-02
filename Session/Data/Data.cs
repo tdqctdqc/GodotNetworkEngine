@@ -6,14 +6,16 @@ public class Data
 {
     public IReadOnlyDictionary<Type, Domain> Domains => _domains;
     private Dictionary<Type, Domain> _domains;
-    private Dictionary<int, Entity> _entities;
+    public Dictionary<int, Entity> Entities { get; private set; }
+    public Dictionary<int, IRepo> EntityRepos { get; private set; }
     private IServer _server;
-    public Entity this[int id] => _entities.ContainsKey(id) ? _entities[id] : null;
+    public Entity this[int id] => Entities.ContainsKey(id) ? Entities[id] : null;
     public BaseDomain BaseDomain => GetDomain<BaseDomain>();
 
     public Data(IServer server)
     {
-        _entities = new Dictionary<int, Entity>();
+        Entities = new Dictionary<int, Entity>();
+        EntityRepos = new Dictionary<int, IRepo>();
         _domains = new Dictionary<Type, Domain>();
         _domains.Add(typeof(BaseDomain), new BaseDomain());
         _server = server;
@@ -21,8 +23,10 @@ public class Data
 
     public void AddEntity(Entity e, Type domainType, StrongWriteKey key)
     {
-        _entities.Add(e.Id.Value, e);
-        _domains[domainType].Repos[e.GetType()].AddEntity(e, key);
+        Entities.Add(e.Id.Value, e);
+        var repo = _domains[domainType].Repos[e.GetType()];
+        repo.AddEntity(e, key);
+        EntityRepos.Add(e.Id.Value, repo);
         if (key is HostWriteKey hKey)
         {
             var creationUpdate = EntityCreationUpdate.Encode(e, domainType, hKey);
@@ -33,7 +37,8 @@ public class Data
     public void RemoveEntity(Entity e, Type domainType, StrongWriteKey key)
     {
         _domains[domainType].Repos[e.GetType()].RemoveEntity(e, key);
-        _entities.Remove(e.Id.Value);
+        Entities.Remove(e.Id.Value);
+        EntityRepos.Remove(e.Id.Value);
         if (key is HostWriteKey hKey)
         {
             
@@ -51,6 +56,6 @@ public class Data
 
     public T GetEntity<T>(int id) where T : Entity
     {
-        return (T) _entities[id];
+        return (T) Entities[id];
     }
 }

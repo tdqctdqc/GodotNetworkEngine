@@ -4,12 +4,13 @@ using System;
 public class Session : Node, ISession
 {
     public Data Data { get; private set; }
+    public UserCredential UserCredential { get; private set; }
     public override void _Ready()
     {
         
     }
 
-    public void Start(bool isHost)
+    public void Start(bool isHost, UserCredential userCredential = null)
     {
         IServer server;
         if (isHost)

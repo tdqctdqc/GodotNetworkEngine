@@ -18,17 +18,17 @@ public class EntityString
     {
         return new EntityString(value, entity.Id.Value, name);
     }
-    public void Update(HostWriteKey key, string newValue, IRepo repo, HostServer server)
+    public void Update(HostWriteKey key, string newValue, HostServer server)
     {
         Value = newValue;
-        repo.RaiseValueChangedNotice(Name, EntityId, key);
+        Game.I.Session.Data.EntityRepos[EntityId].RaiseValueChangedNotice(Name, EntityId, key);
         var update = EntityVarUpdate.Encode<string>(Name, EntityId, newValue, key);
         server.QueueUpdate(update);
     }
-    public static void ReceiveUpdate(EntityString str, ServerWriteKey key, string newValueJson, IRepo repo)
+    public static void ReceiveUpdate(EntityString str, ServerWriteKey key, string newValueJson)
     {
-        str.Value = newValueJson;
-        repo.RaiseValueChangedNotice(str.Name, str.EntityId, key);
+        str.Value = System.Text.Json.JsonSerializer.Deserialize<string>(newValueJson);
+        Game.I.Session.Data.EntityRepos[str.EntityId].RaiseValueChangedNotice(str.Name, str.EntityId, key);
     }
     public void ProcedureSet(ProcedureWriteKey key, string newValue)
     {

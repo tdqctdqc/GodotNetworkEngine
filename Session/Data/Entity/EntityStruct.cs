@@ -21,18 +21,18 @@ public class EntityStruct<TValue> where TValue: struct
     {
         return new EntityStruct<TValue>(value, entity.Id.Value, name);
     }
-    public void Update(HostWriteKey key, TValue newValue, IRepo repo, HostServer server)
+    public void Update(HostWriteKey key, TValue newValue, HostServer server)
     {
         Value = newValue;
-        repo.RaiseValueChangedNotice(Name, EntityId, key);
+        Game.I.Session.Data.EntityRepos[EntityId].RaiseValueChangedNotice(Name, EntityId, key);
         var update = EntityVarUpdate.Encode<TValue>(Name, EntityId, newValue, key);
         server.QueueUpdate(update);
     }
-    public static void ReceiveUpdate(EntityStruct<TValue> str, ServerWriteKey key, string newValueJson, IRepo repo)
+    public static void ReceiveUpdate(EntityStruct<TValue> str, ServerWriteKey key, string newValueJson)
     {
-        var value = Serializer.Deserialize<TValue>(newValueJson);
+        var value = JsonSerializer.Deserialize<TValue>(newValueJson);
         str.Value = value;
-        repo?.RaiseValueChangedNotice(str.Name, str.EntityId, key);
+        Game.I.Session.Data.EntityRepos[str.EntityId].RaiseValueChangedNotice(str.Name, str.EntityId, key);
     }
     public void SetByProcedure(ProcedureWriteKey key, TValue newValue)
     {
@@ -40,12 +40,12 @@ public class EntityStruct<TValue> where TValue: struct
     }
     public static string Serialize(EntityStruct<TValue> es)
     {
-        return System.Text.Json.JsonSerializer.Serialize<TValue>(es.Value);
+        return JsonSerializer.Serialize<TValue>(es.Value);
     }
 
     public static EntityStruct<TValue> Deserialize(string json, string name, Entity entity)
     {
-        var value = System.Text.Json.JsonSerializer.Deserialize<TValue>(json);
+        var value = JsonSerializer.Deserialize<TValue>(json);
         return Construct(value, entity, name);
     }
 }

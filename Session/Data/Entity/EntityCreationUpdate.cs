@@ -34,8 +34,9 @@ public class EntityCreationUpdate : IUpdate
         var list = System.Text.Json.JsonSerializer.Deserialize<List<string>>(json);
         var entityType = Serializer.EntityTypes[list[0]];
         var domainType = Serializer.DomainTypes[list[1]];
+        var entityJson = list[2];
         var entityMeta = Serializer.GetEntityMeta(entityType);
-        var entity = entityMeta.Deserialize(list[2]);
+        var entity = entityMeta.Deserialize(entityJson);
         Game.I.Session.Data.AddEntity(entity, domainType, key);
     }
 }

@@ -12,11 +12,11 @@ public class EntityId
         Value = value;
     }
 
-    public void Update(HostWriteKey key, int newValue, IRepo repo, IServer server)
+    public void Update(HostWriteKey key, int newValue, IServer server)
     {
         throw new Exception();
     }
-    public static void ReceiveUpdate(EntityId str, ServerWriteKey key, string newValueJson, IRepo repo)
+    public static void ReceiveUpdate(EntityId str, ServerWriteKey key, string newValueJson)
     {
         throw new Exception();
     }

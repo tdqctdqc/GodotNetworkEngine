@@ -42,6 +42,8 @@ public class Serializer
         {
             DomainTypes.Add(domainType.Name, domainType);
         }
+        
+        ProcedureMeta.Setup();
     }
 
     public static TValue Deserialize<TValue>(string json)

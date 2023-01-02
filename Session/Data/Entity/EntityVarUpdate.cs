@@ -36,6 +36,6 @@ public sealed class EntityVarUpdate : IUpdate
         var update = new EntityVarUpdate(list[0], list[1].ToInt(), list[2]);
         var entity = Game.I.Session.Data[update.EntityId];
         var meta = entity.GetMeta();
-        meta.UpdateEntityVar(update.FieldName, entity, key, update.NewVal, null);
+        meta.UpdateEntityVar(update.FieldName, entity, key, update.NewVal);
     }
 }

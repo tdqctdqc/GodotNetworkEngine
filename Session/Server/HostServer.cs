@@ -5,6 +5,9 @@ using System.Linq;
 
 public class HostServer : Node, IServer
 {
+    public int NetworkId => 1;
+
+    public static HostServer ForTest;
     private HostLogic _logic;
     private List<IUpdate> _queuedUpdates;
     private List<string> _queuedUpdateTypes;
@@ -15,6 +18,7 @@ public class HostServer : Node, IServer
     private int _maxPlayers = 100;
     public override void _Ready()
     {
+        ForTest = this;
         _clients = new List<int>();
         _queuedUpdates = new List<IUpdate>();
         _queuedUpdateTypes = new List<string>();
@@ -50,6 +54,13 @@ public class HostServer : Node, IServer
         _clients.Add(id);
         GD.Print("peer " + id + " connected");
         RpcId(id, nameof(ClientServer.OnConnectionSucceeded));
+        var stateTransfer = StateTransferUpdate.Encode(new HostWriteKey());
+        var updateJsons = new List<string> {stateTransfer.Serialize()};
+        var updateJsonsString = System.Text.Json.JsonSerializer.Serialize(updateJsons);
+        var updateTypes = new List<string> {StateTransferUpdate.UpdateType};
+        var updateTypesString = System.Text.Json.JsonSerializer.Serialize(updateTypes);
+
+        RpcId(id, nameof(ClientServer.ReceiveUpdates), updateJsonsString, updateTypesString);
     }
     private void PeerDisconnected(int id)
     {

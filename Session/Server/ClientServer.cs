@@ -4,6 +4,7 @@ using System.Collections.Generic;
 
 public class ClientServer : Node, IServer
 {
+    public int NetworkId { get; private set; }
     private ServerWriteKey _key = new ServerWriteKey();
     private NetworkedMultiplayerENet _network;
     private string _ip = "127.0.0.1";
@@ -17,12 +18,13 @@ public class ClientServer : Node, IServer
     }
     [Remote] public void OnConnectionSucceeded()
     {
-        GD.Print("connection succeeded");
+        NetworkId = _network.GetUniqueId();
+        GD.Print("connection succeeded, id is " + NetworkId);
     }
+
     [Remote] public void OnConnectionFailed()
     {
         GD.Print("connection failed");
-
     }
     [Remote] public void ReceiveUpdates(string updatesJson, string updateTypesJson)
     {
@@ -40,9 +42,13 @@ public class ClientServer : Node, IServer
             {
                 EntityCreationUpdate.DeserializeAndEnact(updatesJsonsList[i], _key);
             }
-            else
+            else if (updateType == StateTransferUpdate.UpdateType)
             {
-                //is procedure
+                StateTransferUpdate.DeserializeAndEnact(updatesJsonsList[i], _key);
+            }
+            else if (updateType == ProcedureUpdate.UpdateType)
+            {
+                ProcedureUpdate.DeserializeAndEnact(updatesJsonsList[i], _key);
             }
         }
     }

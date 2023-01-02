@@ -20,7 +20,7 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
     private Dictionary<string, Func<object, string>> _fieldSerializers; 
     private Dictionary<string, Func<T, object>> _fieldGetters; 
     private Dictionary<string, Action<T, object>> _fieldInitializers;
-    private Dictionary<string, Action<T, ServerWriteKey, string, IRepo>> _fieldUpdaters;
+    private Dictionary<string, Action<T, ServerWriteKey, string>> _fieldUpdaters;
     private Func<string, T> _deserializer;
 
     public void ForReference()
@@ -47,7 +47,7 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         _fieldSerializers = new Dictionary<string, Func<object, string>>();
         _fieldGetters = new Dictionary<string, Func<T, object>>();
         _fieldInitializers = new Dictionary<string, Action<T, object>>();
-        _fieldUpdaters = new Dictionary<string, Action<T, ServerWriteKey, string, IRepo>>();
+        _fieldUpdaters = new Dictionary<string, Action<T, ServerWriteKey, string>>();
 
         foreach (var propertyInfo in properties)
         {
@@ -126,23 +126,23 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         return entity => getter(entity);
     }
 
-    private Action<T, ServerWriteKey, string, IRepo> MakeUpdater(PropertyInfo p)
+    private Action<T, ServerWriteKey, string> MakeUpdater(PropertyInfo p)
     {
         var innerMethodInfo = typeof(EntityMeta<T>).GetMethod(nameof(MakeUpdaterInner),
             BindingFlags.Instance | BindingFlags.NonPublic);
         var innerGeneric = innerMethodInfo.MakeGenericMethod(p.PropertyType);
-        return  (Action<T, ServerWriteKey, string, IRepo>)innerGeneric.Invoke(this, new object[]{p});
+        return  (Action<T, ServerWriteKey, string>)innerGeneric.Invoke(this, new object[]{p});
     }
 
-    private Action<T, ServerWriteKey, string, IRepo> MakeUpdaterInner<TEntityVar>(PropertyInfo p)
+    private Action<T, ServerWriteKey, string> MakeUpdaterInner<TEntityVar>(PropertyInfo p)
     {
         var updater = p.PropertyType.GetMethod("ReceiveUpdate",
             BindingFlags.Static | BindingFlags.Public);
         var propName = p.Name;
-        var del = updater.MakeStaticMethodDelegate<Action<TEntityVar, ServerWriteKey, string, IRepo>>();
-        return (entity, key, newVal, repo) =>
+        var del = updater.MakeStaticMethodDelegate<Action<TEntityVar, ServerWriteKey, string>>();
+        return (entity, key, newVal) =>
         {
-            del((TEntityVar)_fieldGetters[propName](entity), key, newVal, repo);
+            del((TEntityVar)_fieldGetters[propName](entity), key, newVal);
         };
     }
     private void SetConstructor(Type serializableType)
@@ -185,8 +185,8 @@ public class EntityMeta<T> : IEntityMeta where T : Entity
         }
     }
 
-    public void UpdateEntityVar(string fieldName, Entity t, ServerWriteKey key, string newValueJson, IRepo repo)
+    public void UpdateEntityVar(string fieldName, Entity t, ServerWriteKey key, string newValueJson)
     {
-        _fieldUpdaters[fieldName]((T) t, key, newValueJson, repo);
+        _fieldUpdaters[fieldName]((T) t, key, newValueJson);
     }
 }

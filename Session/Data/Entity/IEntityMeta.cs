@@ -10,5 +10,5 @@ public interface IEntityMeta
     void Initialize(Entity entity, string json);
     string Serialize(Entity entity);
     Entity Deserialize(string json);
-    void UpdateEntityVar(string fieldName, Entity t, ServerWriteKey key, string newValueJson, IRepo repo);
+    void UpdateEntityVar(string fieldName, Entity t, ServerWriteKey key, string newValueJson);
 }
