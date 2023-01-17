@@ -29,7 +29,6 @@ public class Repository<T> : IRepo where T : Entity
         _entities.Add(t);
         if(key is HostWriteKey)
         {
-            //TODO send update to server
             AddedEntity?.Invoke(t, key);
         }
         else
@@ -42,7 +41,6 @@ public class Repository<T> : IRepo where T : Entity
         if (e is T t == false) throw new Exception();
         if(key is HostWriteKey)
         {
-            //todo send update to server
             RemovingEntity?.Invoke(t, key);
         }
         else
@@ -55,7 +53,10 @@ public class Repository<T> : IRepo where T : Entity
 
     protected void RegisterForValueChangeCallback(string valueName, Action<int, WriteKey> callback) 
     {
-        if(_entityValueUpdatedActions.ContainsKey(valueName) == false) { _entityValueUpdatedActions.Add(valueName, (id, key) => { }); }
+        if (_entityValueUpdatedActions.ContainsKey(valueName) == false)
+        {
+            _entityValueUpdatedActions.Add(valueName, (id, key) => { }); 
+        }
         _entityValueUpdatedActions[valueName] += callback;
     }
 

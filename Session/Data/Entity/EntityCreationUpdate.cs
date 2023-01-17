@@ -5,7 +5,7 @@ using System.Collections.Generic;
 public class EntityCreationUpdate : IUpdate
 {
     string IUpdate.UpdateType => UpdateType;
-    public static string UpdateType = "EntityCreation";
+    public static string UpdateType => "EntityCreation";
     public Type EntityType { get; private set; }
     public Type DomainType { get; private set; }
     public string EntityJson { get; private set; }

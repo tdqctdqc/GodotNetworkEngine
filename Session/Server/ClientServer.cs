@@ -5,6 +5,8 @@ using System.Collections.Generic;
 public class ClientServer : Node, IServer
 {
     public int NetworkId { get; private set; }
+    
+
     private ServerWriteKey _key = new ServerWriteKey();
     private NetworkedMultiplayerENet _network;
     private string _ip = "127.0.0.1";
@@ -52,6 +54,8 @@ public class ClientServer : Node, IServer
             }
         }
     }
-
-    
+    public void ReceiveCommand(string commandType, string commandJson)
+    {
+        RpcId(0, nameof(ReceiveCommand), commandType, commandJson);
+    }
 }

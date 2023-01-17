@@ -4,6 +4,7 @@ using System;
 public class Session : Node, ISession
 {
     public Data Data { get; private set; }
+    private IClient _client;
     public UserCredential UserCredential { get; private set; }
     public override void _Ready()
     {
@@ -12,6 +13,11 @@ public class Session : Node, ISession
 
     public void Start(bool isHost, UserCredential userCredential = null)
     {
+        if (userCredential == null)
+        {
+            userCredential = new UserCredential("doot", "doot");
+        }
+        UserCredential = userCredential;
         IServer server;
         if (isHost)
         {
@@ -32,11 +38,15 @@ public class Session : Node, ISession
         }
         
         Data = new Data(server);
+        var client = new ExampleClient();
+        _client = client;
+        client.Setup(server);
+        AddChild((Node)_client);
     }
 
-//  // Called every frame. 'delta' is the elapsed time since the previous frame.
-//  public override void _Process(float delta)
-//  {
-//      
-//  }
+    public override void _UnhandledInput(InputEvent e)
+    {
+        var delta = GetProcessDeltaTime();
+        _client.HandleInput(e, delta);
+    }
 }

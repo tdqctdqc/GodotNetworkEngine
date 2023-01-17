@@ -1,7 +1,7 @@
 using Godot;
 using System;
 
-public interface ICommand 
+public interface ICommand
 {
     
 }

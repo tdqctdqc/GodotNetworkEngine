@@ -1,6 +1,7 @@
 using Godot;
 using System;
 
-public interface IClient 
+public interface IClient
 {
+    void HandleInput(InputEvent e, float delta);
 }

@@ -1,7 +1,6 @@
-[gd_scene load_steps=3 format=2]
+[gd_scene load_steps=2 format=2]
 
 [ext_resource path="res://Session/Client/StartScene/StartScene.cs" type="Script" id=1]
-[ext_resource path="res://Session/Client/EntityOverview/EntityOverview.tscn" type="PackedScene" id=2]
 
 [node name="Control" type="Control"]
 anchor_right = 1.0
@@ -28,38 +27,3 @@ margin_left = 46.0
 margin_right = 95.0
 margin_bottom = 40.0
 text = "Client"
-
-[node name="AddEntity" type="Button" parent="HBoxContainer"]
-margin_left = 99.0
-margin_right = 176.0
-margin_bottom = 40.0
-text = "Add Entity"
-
-[node name="ChangeEntity" type="Button" parent="HBoxContainer"]
-margin_left = 180.0
-margin_right = 278.0
-margin_bottom = 40.0
-text = "Change Entity"
-
-[node name="EntityOverviewButton" type="Button" parent="HBoxContainer"]
-margin_left = 282.0
-margin_right = 394.0
-margin_bottom = 40.0
-text = "Entity Overview"
-
-[node name="TriggerProcedure" type="Button" parent="HBoxContainer"]
-margin_left = 398.0
-margin_right = 522.0
-margin_bottom = 40.0
-text = "Trigger Procedure"
-
-[node name="Label" type="Label" parent="HBoxContainer"]
-margin_left = 526.0
-margin_top = 13.0
-margin_right = 526.0
-margin_bottom = 27.0
-__meta__ = {
-"_edit_use_anchors_": false
-}
-
-[node name="EntityOverview" parent="." instance=ExtResource( 2 )]

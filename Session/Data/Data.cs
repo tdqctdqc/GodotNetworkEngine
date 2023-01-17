@@ -34,14 +34,15 @@ public class Data
         }
     }
 
-    public void RemoveEntity(Entity e, Type domainType, StrongWriteKey key)
+    public void RemoveEntity(Entity e, StrongWriteKey key)
     {
-        _domains[domainType].Repos[e.GetType()].RemoveEntity(e, key);
+        EntityRepos[e.Id.Value].RemoveEntity(e, key);
         Entities.Remove(e.Id.Value);
         EntityRepos.Remove(e.Id.Value);
         if (key is HostWriteKey hKey)
         {
-            
+            var deletionUpdate = new EntityDeletionUpdate(e.Id.Value);
+            ((HostServer)_server).QueueUpdate(deletionUpdate);
         }
     }
     public T GetDomain<T>() where T : Domain

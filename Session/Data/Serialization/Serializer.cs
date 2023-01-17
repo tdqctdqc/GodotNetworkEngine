@@ -44,6 +44,7 @@ public class Serializer
         }
         
         ProcedureMeta.Setup();
+        CommandMeta.Setup();
     }
 
     public static TValue Deserialize<TValue>(string json)
